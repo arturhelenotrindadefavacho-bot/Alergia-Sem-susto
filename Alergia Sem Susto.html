@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Alergia Sem Susto</title>
+<style>
+:root{--bg:#f6f8f7;--card:#fff;--ink:#1d2b27;--muted:#5f6f6a;--brand:#0f7a6a;--brand-soft:#d9f0eb;--line:#dfe6e3;color-scheme:light}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#101a18;--card:#17241f;--ink:#e8f1ee;--muted:#9bb0a9;--brand:#4fc2ad;--brand-soft:#1d3a33;--line:#2a3d37;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#101a18;--card:#17241f;--ink:#e8f1ee;--muted:#9bb0a9;--brand:#4fc2ad;--brand-soft:#1d3a33;--line:#2a3d37;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);padding-bottom:env(safe-area-inset-bottom,0px)}
+header{background:var(--brand);color:#fff;padding:calc(18px + env(safe-area-inset-top,0px)) 16px 16px}
+header h1{margin:0;font-size:1.4rem}
+header p{margin:4px 0 0;opacity:.9;font-size:.9rem}
+nav{display:flex;position:sticky;top:0;background:var(--card);border-bottom:1px solid var(--line);z-index:5}
+nav button{flex:1;padding:12px 4px;border:0;background:none;color:var(--muted);font-size:.95rem;cursor:pointer;border-bottom:3px solid transparent}
+nav button.on{color:var(--brand);border-bottom-color:var(--brand);font-weight:600}
+main{padding:16px;max-width:640px;margin:0 auto}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+h2{font-size:1.02rem;margin:0 0 10px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:8px 14px;border-radius:999px;font-size:.9rem;cursor:pointer}
+.chip.on{background:var(--brand);border-color:var(--brand);color:#fff}
+input[type=text]{width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:1rem}
+.links{display:grid;gap:10px}
+a.store{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px;border:1px solid var(--line);border-radius:12px;color:var(--ink);text-decoration:none;background:var(--card)}
+a.store small{display:block;color:var(--muted);font-size:.8rem;margin-top:2px}
+a.store .go{color:var(--brand);font-weight:600;white-space:nowrap}
+.query{font-size:.85rem;color:var(--muted);margin:10px 0 0}
+button.primary{width:100%;padding:12px;border:0;border-radius:10px;background:var(--brand);color:#fff;font-size:1rem;font-weight:600;cursor:pointer;margin-top:12px}
+button.ghost{background:none;border:1px solid var(--line);color:var(--ink);padding:6px 10px;border-radius:8px;cursor:pointer;font-size:.85rem}
+.alert{background:var(--brand-soft);border-radius:12px;padding:12px;font-size:.88rem;line-height:1.5;margin-bottom:14px}
+.note{font-size:.85rem;color:var(--muted);line-height:1.5}
+ul{padding-left:18px;margin:0;line-height:1.7}
+.hidden{display:none}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.empty{color:var(--muted);font-size:.9rem;text-align:center;padding:12px 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>Alergia Sem Susto</h1>
+  <p>Encontre produtos seguros para seu filho, online e na sua cidade.</p>
+</header>
+
+<nav>
+  <button class="on" data-tab="buscar">Buscar</button>
+  <button data-tab="rotulos">Rótulos</button>
+  <button data-tab="salvos">Salvos</button>
+</nav>
+
+<main>
+  <!-- BUSCAR -->
+  <div id="tab-buscar">
+    <section class="card">
+      <h2>1. Restrições do seu filho</h2>
+      <div class="chips" id="alergias"></div>
+    </section>
+
+    <section class="card">
+      <h2>2. O que você procura?</h2>
+      <div class="chips" id="categorias"></div>
+    </section>
+
+    <section class="card">
+      <h2>3. Sua cidade (opcional)</h2>
+      <input type="text" id="cidade" placeholder="Ex.: Curitiba, PR" maxlength="80">
+      <p class="note" style="margin:8px 0 0">Usamos a cidade só para abrir a busca de lojas físicas no mapa.</p>
+    </section>
+
+    <section class="card">
+      <h2>Resultados</h2>
+      <div id="resultados"></div>
+      <button class="primary" id="salvar">Salvar esta busca</button>
+    </section>
+
+    <p class="note">Este app não substitui a orientação do pediatra ou do alergista. Fórmulas especiais devem ser indicadas por profissional. Confira sempre o rótulo antes de oferecer qualquer produto.</p>
+  </div>
+
+  <!-- RÓTULOS -->
+  <div id="tab-rotulos" class="hidden">
+    <div class="alert">Leia sempre o rótulo, mesmo de produtos que você já comprou. Fabricantes mudam receitas. Atenção também às frases "pode conter traços" e "fabricado em local que processa...".</div>
+    <div id="lista-rotulos"></div>
+  </div>
+
+  <!-- SALVOS -->
+  <div id="tab-salvos" class="hidden">
+    <section class="card">
+      <h2>Buscas salvas</h2>
+      <div id="lista-salvos"></div>
+    </section>
+    <p class="note">As buscas salvas ficam apenas nesta sessão. Para mantê-las, anote ou favorite o link no seu navegador.</p>
+  </div>
+</main>
+
+<script>
+const ALERGIAS = [
+  { id: 'aplv', nome: 'APLV (leite de vaca)', termo: 'sem leite', palavras: ['leite', 'caseína', 'caseinato', 'soro de leite', 'whey', 'lactose', 'manteiga', 'queijo', 'iogurte', 'creme de leite', 'nata'] },
+  { id: 'ovo', nome: 'Ovo', termo: 'sem ovo', palavras: ['ovo', 'clara', 'gema', 'albumina', 'ovoalbumina', 'lecitina de ovo'] },
+  { id: 'gluten', nome: 'Glúten', termo: 'sem glúten', palavras: ['trigo', 'centeio', 'cevada', 'malte', 'aveia (sem certificação)', 'farinha de trigo', 'sêmola'] },
+  { id: 'soja', nome: 'Soja', termo: 'sem soja', palavras: ['soja', 'lecitina de soja', 'proteína de soja', 'óleo de soja', 'tofu', 'extrato de soja'] },
+  { id: 'amendoim', nome: 'Amendoim', termo: 'sem amendoim', palavras: ['amendoim', 'paçoca', 'pasta de amendoim', 'óleo de amendoim'] },
+  { id: 'peixe', nome: 'Frutos do mar', termo: 'sem frutos do mar', palavras: ['camarão', 'lula', 'polvo', 'mariscos', 'crustáceos', 'peixe', 'siri'] }
+];
+
+const CATEGORIAS = [
+  { id: 'formula', nome: 'Fórmulas', base: 'fórmula infantil' },
+  { id: 'lanche', nome: 'Lanches e biscoitos', base: 'biscoito infantil' },
+  { id: 'papa', nome: 'Papinhas e cereais', base: 'papinha infantil' },
+  { id: 'bebida', nome: 'Bebidas vegetais', base: 'bebida vegetal infantil' },
+  { id: 'pao', nome: 'Pães e massas', base: 'pão' },
+  { id: 'higiene', nome: 'Higiene e cuidados', base: 'sabonete bebê' }
+];
+
+let alergiasSel = new Set();
+let categoriaSel = null;
+let salvos = [];
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+function renderChips() {
+  $('alergias').innerHTML = ALERGIAS.map(a =>
+    `<button class="chip ${alergiasSel.has(a.id) ? 'on' : ''}" data-alergia="${a.id}">${esc(a.nome)}</button>`).join('');
+  $('categorias').innerHTML = CATEGORIAS.map(c =>
+    `<button class="chip ${categoriaSel === c.id ? 'on' : ''}" data-cat="${c.id}">${esc(c.nome)}</button>`).join('');
+}
+
+function montarQuery() {
+  const cat = CATEGORIAS.find(c => c.id === categoriaSel);
+  const partes = [cat ? cat.base : 'produto infantil'];
+  ALERGIAS.filter(a => alergiasSel.has(a.id)).forEach(a => partes.push(a.termo));
+  return partes.join(' ');
+}
+
+function linksPara(q, cidade) {
+  const c = encodeURIComponent(q);
+  const lista = [
+    { nome: 'Mercado Livre', sub: 'Lojas e entrega em todo o Brasil', url: 'https://lista.mercadolivre.com.br/' + encodeURIComponent(q.replace(/\s+/g, '-')) },
+    { nome: 'Amazon Brasil', sub: 'Produtos nacionais e importados', url: 'https://www.amazon.com.br/s?k=' + c },
+    { nome: 'Google Shopping', sub: 'Compare preços entre várias lojas', url: 'https://www.google.com/search?tbm=shop&q=' + c },
+    { nome: 'Drogasil', sub: 'Farmácia online', url: 'https://www.drogasil.com.br/search?w=' + c }
+  ];
+  if (cidade) {
+    lista.push({ nome: 'Lojas em ' + cidade, sub: 'Mapa com farmácias e lojas próximas', url: 'https://www.google.com/maps/search/' + encodeURIComponent(q + ' ' + cidade) });
+  }
+  return lista;
+}
+
+function renderResultados() {
+  const q = montarQuery();
+  const cidade = $('cidade').value.trim();
+  if (!categoriaSel) {
+    $('resultados').innerHTML = `<div class="empty">Escolha uma categoria para ver os resultados.</div>`;
+    return;
+  }
+  const dica = alergiasSel.has('aplv') && categoriaSel === 'formula'
+    ? `<p class="note" style="margin:0 0 10px">Dica: para APLV, pergunte ao pediatra sobre fórmulas extensamente hidrolisadas ou de aminoácidos, e pesquise por esses termos também.</p>`
+    : '';
+  $('resultados').innerHTML = `
+    ${dica}
+    <div class="links">
+      ${linksPara(q, cidade).map(l => `
+        <a class="store" href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">
+          <div>${esc(l.nome)}<small>${esc(l.sub)}</small></div>
+          <span class="go">Abrir →</span>
+        </a>`).join('')}
+    </div>
+    <p class="query">Busca: <strong>${esc(q)}</strong></p>`;
+}
+
+function salvarBusca() {
+  if (!categoriaSel) return;
+  const q = montarQuery();
+  const cidade = $('cidade').value.trim();
+  const label = q + (cidade ? ' · ' + cidade : '');
+  if (!salvos.some(s => s.label === label)) salvos.push({ label, q, cidade });
+  renderSalvos();
+  $('salvar').textContent = 'Busca salva ✓';
+  setTimeout(() => $('salvar').textContent = 'Salvar esta busca', 1200);
+}
+
+function renderSalvos() {
+  if (!salvos.length) {
+    $('lista-salvos').innerHTML = `<div class="empty">Nenhuma busca salva ainda.</div>`;
+    return;
+  }
+  $('lista-salvos').innerHTML = salvos.map((s, i) => `
+    <div class="row">
+      <div style="font-size:.92rem">${esc(s.label)}</div>
+      <div style="display:flex;gap:6px">
+        <button class="ghost" data-abrir="${i}">Abrir</button>
+        <button class="ghost" data-remover="${i}">Remover</button>
+      </div>
+    </div>`).join('');
+}
+
+function renderRotulos() {
+  $('lista-rotulos').innerHTML = ALERGIAS.map(a => `
+    <section class="card">
+      <h2>${esc(a.nome)}</h2>
+      <ul>${a.palavras.map(p => `<li>${esc(p)}</li>`).join('')}</ul>
+    </section>`).join('');
+}
+
+function trocarAba(nome) {
+  document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.tab === nome));
+  ['buscar', 'rotulos', 'salvos'].forEach(t => $('tab-' + t).classList.toggle('hidden', t !== nome));
+}
+
+document.querySelector('nav').addEventListener('click', e => {
+  const b = e.target.closest('button[data-tab]');
+  if (b) trocarAba(b.dataset.tab);
+});
+
+$('alergias').addEventListener('click', e => {
+  const b = e.target.closest('[data-alergia]');
+  if (!b) return;
+  const id = b.dataset.alergia;
+  alergiasSel.has(id) ? alergiasSel.delete(id) : alergiasSel.add(id);
+  renderChips();
+  renderResultados();
+});
+
+$('categorias').addEventListener('click', e => {
+  const b = e.target.closest('[data-cat]');
+  if (!b) return;
+  categoriaSel = b.dataset.cat;
+  renderChips();
+  renderResultados();
+});
+
+$('cidade').addEventListener('input', renderResultados);
+$('salvar').addEventListener('click', salvarBusca);
+
+$('lista-salvos').addEventListener('click', e => {
+  const abrir = e.target.dataset.abrir;
+  const remover = e.target.dataset.remover;
+  if (abrir !== undefined) {
+    const s = salvos[+abrir];
+    alergiasSel = new Set(ALERGIAS.filter(a => s.q.includes(a.termo)).map(a => a.id));
+    categoriaSel = (CATEGORIAS.find(c => s.q.startsWith(c.base)) || {}).id || null;
+    $('cidade').value = s.cidade || '';
+    renderChips();
+    renderResultados();
+    trocarAba('buscar');
+  }
+  if (remover !== undefined) {
+    salvos.splice(+remover, 1);
+    renderSalvos();
+  }
+});
+
+renderChips();
+renderRotulos();
+renderSalvos();
+renderResultados();
+</script>
+</body>
+</html>
